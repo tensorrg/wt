@@ -194,7 +194,7 @@
   :root{--brand=#167538;--accent=#0f557d;}
   #tensor-chat{position:fixed;right:18px;bottom:18px;font-family:Inter,system-ui,Arial}
   #tc-btn{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;border:none;border-radius:999px;
-    width:56px;height:56px;box-shadow:0 12px 30px rgba(106,76,255,.35);cursor:pointer;font-weight:800}
+    width:60px;height:60px;box-shadow:0 15px 30px rgba(106,76,255,.35);cursor:pointer;font-weight:800}
   #tc-panel{position:fixed;right:18px;bottom:86px;width:320px;max-height:70vh;background:#0b0b0f;color:#f2f2f2;
     border:1px solid rgba(255,255,255,.10);border-radius:16px;display:none;overflow:hidden}
   #tc-head{display:flex;align-items:center;gap:8px;padding:12px 14px;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.08)}
@@ -225,7 +225,7 @@
     </div>
     <div id="tc-body"></div>
     <div id="tc-input">
-      <input id="tc-text" type="text" placeholder="Type a question…" />
+      <input id="tc-text" type="text" placeholder="Type a query…" />
       <button id="tc-send">Send</button>
     </div>
   </div>
@@ -239,15 +239,15 @@
 
   const intents = [
     {k:["price","cost","rate","package","packages","how much"], a:
-      "We’re 2% under market. Bot packages: Basic 4,800 AED • Pro 7,800 AED • Plus 18,000 AED. Want the PDF?",
+      "We’re 2% under market. Bot packages starting: Basic 4,800 AED • Pro 7,800 AED • Plus 18,000 AED. Want the PDF?",
       c:[["Get PDF","pdf"],["Talk on WhatsApp","whatsapp"],["See packages on site","packages"]]
     },
     {k:["bot","chatbot","whatsapp","automation","flow"], a:
-      "We build Arabic/English bots for WhatsApp, website & Instagram: FAQs, bookings, reminders, payment links.",
+      "We build Multilingual bots for WhatsApp, website & Instagram: FAQs, bookings, reminders, payment links.",
       c:[["Show examples","ads"],["Integration options","integrations"],["Talk on WhatsApp","whatsapp"]]
     },
-    {k:["website","site","landing"], a:
-      "We ship fast, mobile-first landing pages with click-to-WhatsApp, forms, analytics, and SEO basics.",
+    {k:["App","site","landing"], a:
+      "We ship fast, mobile friendly apps, user- friendly and easy to use.",
       c:[["Timeline","timeline"],["Show recent work","ads"],["Talk on WhatsApp","whatsapp"]]
     },
     {k:["ad","ads","video","reel"], a:
