@@ -189,5 +189,165 @@
     </div>
     <script>document.getElementById('y').textContent=new Date().getFullYear()</script>
   </footer>
+  <!-- TENSOR CHATBOT (drop-in) -->
+<style>
+  :root{--brand:#ff2fb3;--accent:#6a4cff;}
+  #tensor-chat{position:fixed;right:18px;bottom:18px;font-family:Inter,system-ui,Arial}
+  #tc-btn{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;border:none;border-radius:999px;
+    width:56px;height:56px;box-shadow:0 12px 30px rgba(106,76,255,.35);cursor:pointer;font-weight:800}
+  #tc-panel{position:fixed;right:18px;bottom:86px;width:320px;max-height:70vh;background:#0b0b0f;color:#f2f2f2;
+    border:1px solid rgba(255,255,255,.10);border-radius:16px;display:none;overflow:hidden}
+  #tc-head{display:flex;align-items:center;gap:8px;padding:12px 14px;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.08)}
+  #tc-dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--accent))}
+  #tc-title{font-weight:700}
+  #tc-body{padding:12px 10px 12px 12px;overflow:auto;max-height:58vh}
+  .tc-bot,.tc-user{margin:10px 0;display:flex;gap:8px}
+  .tc-bot .bubble{background:#131318;border:1px solid rgba(255,255,255,.08)}
+  .tc-user{justify-content:flex-end}
+  .tc-user .bubble{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff}
+  .bubble{padding:10px 12px;border-radius:12px;max-width:78%}
+  #tc-quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .chip{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#ddd;padding:6px 10px;border-radius:999px;cursor:pointer;font-size:12px}
+  #tc-input{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(255,255,255,.08);background:#0b0b0f}
+  #tc-input input{flex:1;background:#111; color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px}
+  #tc-input button{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;border:none;border-radius:10px;padding:10px 14px;cursor:pointer}
+  .cta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .cta{display:inline-block;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);color:#fff;text-decoration:none;font-size:12px}
+  .cta.primary{background:linear-gradient(135deg,var(--brand),var(--accent));border:none}
+  @media (max-width:420px){#tc-panel{right:10px;width:94vw}}
+</style>
+
+<div id="tensor-chat">
+  <button id="tc-btn" aria-label="Chat">💬</button>
+  <div id="tc-panel" role="dialog" aria-label="Tensor Chatbot">
+    <div id="tc-head">
+      <div id="tc-dot"></div><div id="tc-title">Tensor Assistant</div>
+    </div>
+    <div id="tc-body"></div>
+    <div id="tc-input">
+      <input id="tc-text" type="text" placeholder="Type a question…" />
+      <button id="tc-send">Send</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const WHATSAPP = "971501450602"; // ← your number
+  const EMAIL = "tensorrgroup@gmail.com";
+  const SITE = location.origin;
+
+  const intents = [
+    {k:["price","cost","rate","package","packages","how much"], a:
+      "We’re 2% under market. Bot packages: Basic 4,800 AED • Pro 7,800 AED • Plus 18,000 AED. Want the PDF?",
+      c:[["Get PDF","pdf"],["Talk on WhatsApp","whatsapp"],["See packages on site","packages"]]
+    },
+    {k:["bot","chatbot","whatsapp","automation","flow"], a:
+      "We build Arabic/English bots for WhatsApp, website & Instagram: FAQs, bookings, reminders, payment links.",
+      c:[["Show examples","ads"],["Integration options","integrations"],["Talk on WhatsApp","whatsapp"]]
+    },
+    {k:["website","site","landing"], a:
+      "We ship fast, mobile-first landing pages with click-to-WhatsApp, forms, analytics, and SEO basics.",
+      c:[["Timeline","timeline"],["Show recent work","ads"],["Talk on WhatsApp","whatsapp"]]
+    },
+    {k:["ad","ads","video","reel"], a:
+      "We produce 5–15s vertical ads (hooks, subs, A/B variants). See our IG reel in the page’s Ad section.",
+      c:[["Open the reel","reel"],["Discuss ad package","whatsapp"]]
+    },
+    {k:["integration","api","crm","sheet","calendar","payment"], a:
+      "We integrate CRMs, Google Sheets, calendars, WhatsApp Business & payment links. Tell me your stack?",
+      c:[["Book a quick call","whatsapp"],["Email us","email"]]
+    },
+    {k:["support","help","maintenance","monthly"], a:
+      "We offer ongoing technical support and optimization. Prefer monthly or on-demand?",
+      c:[["Monthly care","whatsapp"],["Ask by email","email"]]
+    }
+  ];
+
+  const open = (url) => window.open(url, "_blank", "noopener");
+  const el = (s) => document.querySelector(s);
+  const body = el("#tc-body"), panel = el("#tc-panel");
+  const btn = el("#tc-btn"), send = el("#tc-send"), field = el("#tc-text");
+
+  const add = (who, html) => {
+    const wrap = document.createElement("div");
+    wrap.className = who === "bot" ? "tc-bot" : "tc-user";
+    const b = document.createElement("div");
+    b.className = "bubble";
+    b.innerHTML = html;
+    wrap.appendChild(b);
+    body.appendChild(wrap);
+    body.scrollTop = body.scrollHeight;
+  };
+
+  const quickRow = (chips=[]) => {
+    if (!chips.length) return "";
+    return `<div id="tc-quick">${chips.map(([t,v])=>`<span class="chip" data-v="${v}">${t}</span>`).join("")}</div>`;
+  };
+
+  const reply = (msg) => {
+    const m = msg.toLowerCase();
+    const hit = intents.find(i => i.k.some(k => m.includes(k)));
+    if (hit){
+      add("bot", hit.a + quickRow(hit.c));
+    } else {
+      add("bot", "I can help with bots, websites, and short ads (2% under market). What do you need?");
+    }
+    bindChips();
+  };
+
+  const greet = () => {
+    add("bot", "Hi! I’m the Tensor Assistant. 👋<br>Need a <b>bot</b>, a <b>website</b>, or <b>ad videos</b>?<div class='cta-row'><a class='cta primary' href='https://wa.me/"+WHATSAPP+"' target='_blank'>WhatsApp now</a><a class='cta' href='mailto:"+EMAIL+"'>Email us</a></div>");
+    add("bot", "Quick options:" + quickRow([["Pricing","price"],["Website","website"],["Bots","bot"],["Ad reel","reel"]]));
+    bindChips();
+  };
+
+  const act = (v) => {
+    switch(v){
+      case "whatsapp": open("https://wa.me/"+WHATSAPP+"?text=Hi%20Tensor%2C%20I%27m%20interested%20in%20bots%2Fwebsite%2Fads."); break;
+      case "email": open("mailto:"+EMAIL+"?subject=Tensor%20Inquiry&body=Hi%20Tensor%2C%20we%27re%20interested%20in..."); break;
+      case "reel": open("https://www.instagram.com/reel/DNLKXK9hPO3/"); break;
+      case "packages": location.hash="#pricing"; break;
+      case "pdf": open(SITE + "/tensor_bot_packages.pdf"); break; // upload your PDF to repo root with this name
+      case "integrations": reply("integration"); break;
+      case "timeline": add("bot","Typical launch: <b>7–14 days</b> for bot + landing + first ad. Full automation in <b>30–45 days</b>."); break;
+      default: reply(v);
+    }
+  };
+
+  const bindChips = () => {
+    body.querySelectorAll(".chip").forEach(ch => {
+      ch.onclick = () => {
+        const v = ch.getAttribute("data-v");
+        add("user", ch.textContent);
+        act(v);
+      };
+    });
+  };
+
+  btn.onclick = () => {
+    const show = panel.style.display === "block";
+    panel.style.display = show ? "none" : "block";
+    if (!show && !sessionStorage.getItem("tc_greeted")) {
+      setTimeout(greet, 150);
+      sessionStorage.setItem("tc_greeted", "1");
+    }
+  };
+
+  send.onclick = () => {
+    const t = field.value.trim();
+    if (!t) return;
+    add("user", t);
+    field.value = "";
+    setTimeout(() => reply(t), 200);
+  };
+
+  field.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") send.click();
+  });
+})();
+</script>
+<!-- /TENSOR CHATBOT -->
+
 </body>
 </html>
